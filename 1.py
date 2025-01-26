@@ -14,26 +14,30 @@ def gen_cards(page: ft.Page):
     products_rows = []
     while counter != 0:
         if counter - 2 >= 0:
-            product_image_1 = ft.Image(f'products/{answer.data[i].image}', fit=ft.ImageFit.FILL, height=0.5 * page.height, width=0.4 * page.width
+            product_image_1 = ft.Image(f'products/{answer.data[i].image}', fit=ft.ImageFit.CONTAIN,
+                                       height=0.5 * page.height, width=0.4 * page.width
                                        )
             product_name_1 = ft.Text(f'{answer.data[i].name}')
             product_price_1 = ft.Text(f'{answer.data[i].price}')
             card_1 = ft.Container(
-                content=ft.Column([product_image_1, product_name_1, product_price_1]),
+                content=ft.Column([product_image_1, product_name_1, product_price_1],
+                                  horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor='#262626',
                 border_radius=20,
                 width=page.width * 0.4,
                 height=page.height * 0.6
             )
-            product_image_2 = ft.Image(f'products/{answer.data[i + 1].image}', fit=ft.ImageFit.FILL, height=0.5 * page.height, width=0.4 * page.width)
+            product_image_2 = ft.Image(f'products/{answer.data[i + 1].image}', fit=ft.ImageFit.CONTAIN,
+                                       height=0.5 * page.height, width=0.4 * page.width)
             product_name_2 = ft.Text(f'{answer.data[i + 1].name}')
             product_price_2 = ft.Text(f'{answer.data[i + 1].price}')
             card_2 = ft.Container(
-                content=ft.Column([product_image_2, product_name_2, product_price_2]),
+                content=ft.Column([product_image_2, product_name_2, product_price_2],
+                                  horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor='#262626',
                 border_radius=20,
                 width=page.width * 0.4,
-                height=page.height * 0.6
+                height=page.height * 0.6,
             )
             products_rows.append(ft.Row([card_1, card_2],
                                         spacing=page.width * 0.07,
@@ -59,7 +63,8 @@ def gen_cards(page: ft.Page):
     return products_rows
 
 
-def build_main(page: ft.Page):
+def build_main(page: ft.Page, user_id: int, user_hash: str):
+    print(user_id, user_hash)
     page.bgcolor = '#000000'
     logo_image = ft.Container(ft.Image(src="img/logo.svg", width=page.width * 0.3))
     free_container = ft.Container(expand=True)
@@ -88,6 +93,17 @@ def build_main(page: ft.Page):
     return frame
 
 
+def start(page: ft.Page):
+    if page.route == "asd":
+        return ft.Text("asd")
+    elif page.route.find("/login/") != -1:
+        ip, data = page.route.split("/login/")
+        user_id, user_hash = data.split("/")
+        return build_main(page, user_id, user_hash)
+    else:
+        return build_main(page, 0, "2")
+
+
 def card_generator(name: str, price: int, img: str) -> ft.Container:
     pass
 
@@ -95,16 +111,24 @@ def card_generator(name: str, price: int, img: str) -> ft.Container:
 def on_resize(e: ft.ControlEvent):
     e.page: ft.Page
     e.page.clean()
-    data = build_main(e.page)
+    data = start(e.page)
+    e.page.add(data)
+    e.page.update()
+
+
+def on_route_change(e: ft.RouteChangeEvent):
+    data = start(e.page)
+    e.page.clean()
     e.page.add(data)
     e.page.update()
 
 
 def main(page: ft.Page):
-    data = build_main(page)
+    data = start(page)
     page.add(data)
 
     page.on_resized = on_resize
+    page.on_route_change = on_route_change
 
 
-ft.app(target=main, assets_dir="src", view=ft.WEB_BROWSER),  # port=8000)
+ft.app(target=main, assets_dir="src", view=ft.WEB_BROWSER, port=2222)
