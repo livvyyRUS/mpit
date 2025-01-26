@@ -312,6 +312,7 @@ def build_profile(page: ft.Page):
         rows_2 = []
         for i in item.data.keys():
             response = requests.get(f'{api_address}/products/get', data=json.dumps({"product_id": int(i)}))
+            print(response.text)
             data = response.json()
             answer = Product.model_validate(data)
             # print(answer.name, item.data[i], answer.price * item.data[i])
@@ -321,8 +322,8 @@ def build_profile(page: ft.Page):
                 ft.Text(f'  {answer.price * item.data[i]}', color='#FFFFFF', width=page.width * 0.25)
             ], alignment=ft.MainAxisAlignment.SPACE_EVENLY))
         rows.append(ft.Container(content=ft.Column([ft.Text(value=f'  Заказ №{index + 1}', color='#FFFFFF',
-                                       size=24)] + rows_2), border_radius=20,
-        border=ft.border.all(3, '#FFFFFF')))
+                                                            size=24)] + rows_2), border_radius=20,
+                                 border=ft.border.all(3, '#FFFFFF')))
 
     header = ft.Row([btn_back, history_text], spacing=page.width * 0.02)
     body = ft.Column(controls=rows, scroll="always", expand=True, spacing=page.height * 0.06)
@@ -345,12 +346,15 @@ def start(page: ft.Page):
         ip, data = page.route.split("/login/")
         user_id, user_hash = data.split("/")
         if user_hash != get_token(user_id):
-            return ft.Text("Вы зашли не со своего аккаунта")
+            return ft.Text("Вы зашли не со своего аккаунта", color="#FFFFFF", width=page.width,
+                           text_align=ft.TextAlign.CENTER)
         elif bool(check_activation(user_id)) is False:
-            return ft.Text("Ваша учетная запись не активирована")
+            return ft.Text(
+                f"Ваша учетная запись не активирована\nВаш айди для активации:\n{user_id}\nОтправьте этот айди администратору, чтобы он вас активировал",
+                color="#FFFFFF", width=page.width, text_align=ft.TextAlign.CENTER)
         return build_main(page, user_id, user_hash)
     else:
-        return ft.Text("Вы зашли не с телеграмма")
+        return ft.Text("Вы зашли не с телеграмма", color="#FFFFFF", width=page.width, text_align=ft.TextAlign.CENTER)
 
 
 def on_resize(e: ft.ControlEvent):
@@ -368,6 +372,7 @@ def on_route_change(e: ft.RouteChangeEvent):
 
 
 def main(page: ft.Page):
+    page.bgcolor = "#000000"
     page.fonts = {
         "MyCustomFont": "/fonts/gramatika_regular.ttf"
     }
