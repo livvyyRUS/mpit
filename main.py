@@ -2,7 +2,36 @@ import flet as ft
 import requests
 from models import Products
 
-api_address = 'http://192.168.52.80'
+api_address = 'http://192.168.52.80:12345'
+
+
+def create_card(page: ft.Page, image, name, price):
+    # Картинка
+    product_image_1 = ft.Image(f'products/{image}', fit=ft.ImageFit.COVER)
+
+    # Текстовые элементы
+    product_name_1 = ft.Text(f'{name}', color='black', text_align=ft.TextAlign.CENTER,
+                             width=page.width * 0.4)
+    product_price_1 = ft.Text(f'{price}', color='black', text_align=ft.TextAlign.CENTER, width=page.width * 0.4)
+
+    # Контейнер с изображением
+    image_container = ft.Container(content=product_image_1)
+
+    # Контейнер для текста с выравниванием по горизонтали и вертикали
+    text_container = ft.Column(
+        [product_name_1, product_price_1],
+        alignment=ft.MainAxisAlignment.CENTER,  # Выравнивание по вертикали
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Выравнивание по горизонтали
+    )
+
+    # Главный контейнер (карточка)
+    card_container = ft.Container(
+        content=ft.Column([image_container, text_container], alignment=ft.MainAxisAlignment.CENTER),
+        bgcolor='#FFFFFF',
+        border_radius=20,
+        width=page.width * 0.4
+    )
+    return card_container
 
 
 def gen_cards(page: ft.Page):
@@ -14,49 +43,16 @@ def gen_cards(page: ft.Page):
     products_rows = []
     while counter != 0:
         if counter - 2 >= 0:
-            product_image_1 = ft.Image(f'products/{answer.data[i].image}', fit=ft.ImageFit.CONTAIN,
-                                       height=0.5 * page.height, width=0.4 * page.width
-                                       )
-            product_name_1 = ft.Text(f'{answer.data[i].name}')
-            product_price_1 = ft.Text(f'{answer.data[i].price}')
-            card_1 = ft.Container(
-                content=ft.Column([product_image_1, product_name_1, product_price_1],
-                                  horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                bgcolor='#262626',
-                border_radius=20,
-                width=page.width * 0.4,
-                height=page.height * 0.6
-            )
-            product_image_2 = ft.Image(f'products/{answer.data[i + 1].image}', fit=ft.ImageFit.FILL,
-                                       height=0.5 * page.height, width=0.4 * page.width)
-            product_name_2 = ft.Text(f'{answer.data[i + 1].name}')
-            product_price_2 = ft.Text(f'{answer.data[i + 1].price}')
-            card_2 = ft.Container(
-                content=ft.Column([product_image_2, product_name_2, product_price_2]),
-                bgcolor='#262626',
-                border_radius=20,
-                width=page.width * 0.4,
-                height=page.height * 0.6,
-            )
-            products_rows.append(ft.Row([card_1, card_2],
-                                        spacing=page.width * 0.07,
-                                        alignment=ft.MainAxisAlignment.CENTER))
+            products_rows.append(ft.Row([
+                create_card(page, answer.data[i].image, answer.data[i].name, answer.data[i].price),
+                create_card(page, answer.data[i + 1].image, answer.data[i + 1].name, answer.data[i + 1].price)
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=page.width * 0.05))
             counter -= 2
             i += 2
         else:
-            product_image_1 = ft.Image(f'products/{answer.data[i].image}')
-            product_name_1 = ft.Text(f'{answer.data[i].name}')
-            product_price_1 = ft.Text(f'{answer.data[i].price}')
-            card_1 = ft.Container(
-                content=ft.Column([product_image_1, product_name_1, product_price_1]),
-                bgcolor='#262626',
-                border_radius=20,
-                width=page.width * 0.4,
-                height=page.height * 0.6
-            )
-            products_rows.append(ft.Row([card_1],
-                                        spacing=page.width * 0.07,
-                                        alignment=ft.MainAxisAlignment.CENTER))
+            products_rows.append(ft.Row([
+                create_card(page, answer.data[i].image, answer.data[i].name, answer.data[i].price)
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=page.width * 0.05))
             counter -= 1
             i += 1
     return products_rows
@@ -82,7 +78,7 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
     )
 
     header = ft.Row([logo_image, free_container, buttons])
-    body = ft.Column(gen_cards(page), scroll="always", expand=True)
+    body = ft.Column(gen_cards(page), scroll="always", expand=True, spacing=page.height * 0.02)
 
     frame = ft.Column([
         header,
@@ -93,8 +89,9 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
 
 
 def start(page: ft.Page):
-    if page.route == "asd":
-        return ft.Text("asd")
+    print(page.route)
+    if page.route == "/basket":
+        return ft.Text("basket")
     elif page.route.find("/login/") != -1:
         ip, data = page.route.split("/login/")
         user_id, user_hash = data.split("/")
@@ -130,4 +127,4 @@ def main(page: ft.Page):
     page.on_route_change = on_route_change
 
 
-ft.app(target=main, assets_dir="src", view=ft.WEB_BROWSER),  # port=8000)
+ft.app(target=main, assets_dir="src", view=ft.WEB_BROWSER, port=2222)
