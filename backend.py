@@ -1,7 +1,9 @@
+import json
+
 from fastapi import FastAPI
 
 from database import Database
-from models import Register, AddProducts, DeleteProduct, GetUser, GetProduct
+from models import Register, AddProducts, DeleteProduct, GetUser, GetProduct, Order, HistoryGet
 
 db = Database("database.db")
 
@@ -18,6 +20,7 @@ async def root():
 @app.get("/check_activation")
 async def check_activation(data: GetUser):
     return db.user_get(data.user_id, "activated")
+
 
 @app.get("/get_balance")
 async def get_balance(data: GetUser):
@@ -72,8 +75,31 @@ async def delete_products(data: DeleteProduct):
     return {"status": "OK"}
 
 
-
 @app.get("/products/get")
 async def get_product(product: GetProduct):
     product_id, name, image, price = db.product_get_all(product.product_id)
     return {"product_id": product_id, "name": name, "image": image, "price": price}
+
+
+@app.post("/order")
+async def cmd_order(data: Order):
+    if db.user_get(data.user_id, "token") != data.user_hash:
+        return False
+    balance = db.user_get(data.user_id, "balance")
+    if balance < data.finish_money:
+        return False
+    balance -= data.finish_money
+    db.user_set(data.user_id, "balance", balance)
+    history = json.loads(db.user_get(data.user_id, "history"))
+    history_ = history.get("history")
+    history_.append(data.model_dump())
+    history["history"] = history_
+    db.user_set(data.user_id, "history", json.dumps(history))
+    return True
+
+
+@app.get("/history")
+async def cmd_history(data: HistoryGet):
+    if db.user_get(data.user_id, "token") != data.user_hash:
+        return None
+    return db.user_get(data.user_id, "history")

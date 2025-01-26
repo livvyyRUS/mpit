@@ -9,6 +9,58 @@ from models import Products, Product
 api_address = 'http://localhost:12345'
 
 
+def load_banner(page: ft.Page, text: str, color: str):
+    banner = ft.Banner(
+        bgcolor=color,
+        content=ft.Text(value=text, color="#FFFFFF"),
+        actions=[ft.TextButton(text="Закрыть", on_click=lambda e: page.close(banner))]
+    )
+    page.open(banner)
+
+
+def order_action(e: ft.ControlEvent, _comment: ft.TextField):
+    e.page: ft.Page
+    basket = e.page.session.get("basket") or {}
+    basket = {i: basket[i] for i in basket.keys() if basket[i] != 0}
+    if basket == {}:
+        load_banner(e.page, "Корзина пуста, нечего заказать", "#FF0000")
+        return
+    all_money = 0
+    response = requests.get(f'{api_address}/get_balance', data=json.dumps({'user_id': e.page.session.get('user_id')}))
+    balance = int(response.text.strip('"'))
+
+    for i in basket.keys():
+        if basket[i] != 0:
+            response = requests.get(f'{api_address}/products/get', data=json.dumps({"product_id": int(i)}))
+            data = response.json()
+            print(data)
+            answer = Product.model_validate(data)
+
+            all_money += answer.price * basket[i]
+
+    print(balance, all_money)
+    if balance < all_money:
+        load_banner(e.page, "Недостаточно средств", "#FF0000")
+        return
+
+    comment = _comment.value
+
+    response = requests.post(f"{api_address}/order", data=json.dumps({
+        "user_id": e.page.session.get("user_id"),
+        "user_hash": e.page.session.get("user_hash"),
+        "data": basket,
+        "comment": comment,
+        "finish_money": all_money
+    }))
+
+    if response.text.lower() == "true":
+        load_banner(e.page, "Заказ оформлен успешно", "#00FF00")
+        e.page.go(
+            f"/login/{e.page.session.get('user_id')}/{e.page.session.get('user_hash')}")
+    else:
+        load_banner(e.page, "Произошла ошибка", "#FF0000")
+
+
 def get_token(user_id: int):
     response = requests.get(f"{api_address}/get_token", data=json.dumps({"user_id": user_id}))
     return response.text.strip('"')
@@ -221,7 +273,7 @@ def build_basket(page: ft.Page):
                      alignment=ft.MainAxisAlignment.CENTER)
 
     order = ft.Container(ft.Image(src="img/btn_order.svg", width=page.width * 0.8),
-                         alignment=ft.alignment.center)
+                         alignment=ft.alignment.center, on_click=lambda e: order_action(e, comment.controls[0]))
 
     header = ft.Row([btn_back, basket_text], spacing=page.width * 0.02)
     body = ft.Column(controls=rows + [comment, final_price_row, order],

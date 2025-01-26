@@ -37,3 +37,16 @@ class GetUser(BaseModel):
 
 class GetProduct(BaseModel):
     product_id: int
+
+
+class Order(BaseModel):
+    user_id: int
+    user_hash: str
+    data: dict[str, int]
+    comment: str
+    finish_money: int
+
+
+class HistoryGet(BaseModel):
+    user_id: int
+    user_hash: str

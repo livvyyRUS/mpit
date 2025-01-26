@@ -17,18 +17,20 @@ class Database:
             balance: int = 0,
             role: str = "user",
             activated: int = 0,
-            history: str = "{}",
+            history: str = '{"history": []}',
             token: str = secrets.token_hex(32)
     ):
         self.cursor.execute(
-            f'INSERT INTO users (user_id, balance, role, activated, history, token) VALUES ({user_id}, {balance}, "{role}", {activated}, "{history}", "{token}")'
+            f'''INSERT INTO users (user_id, balance, role, activated, history, token) VALUES ({user_id}, {balance}, "{role}", {activated}, '{history}', "{token}")'''
         )
         self.db.commit()
 
     def user_set(
             self, user_id: int, item: str, data: Any
     ):
-        data = f'"{data}"' if type(data) == str else data
+        print(data, type(data))
+        data = f"""'{data}'""" if type(data) == str else data
+        print(f'UPDATE users SET {item} = {data} WHERE user_id = {user_id}')
         self.cursor.execute(f'UPDATE users SET {item} = {data} WHERE user_id = {user_id}')
         self.db.commit()
 
