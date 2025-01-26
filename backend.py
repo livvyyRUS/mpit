@@ -102,4 +102,4 @@ async def cmd_order(data: Order):
 async def cmd_history(data: HistoryGet):
     if db.user_get(data.user_id, "token") != data.user_hash:
         return None
-    return db.user_get(data.user_id, "history")
+    return json.loads(db.user_get(data.user_id, "history"))

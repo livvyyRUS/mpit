@@ -50,3 +50,7 @@ class Order(BaseModel):
 class HistoryGet(BaseModel):
     user_id: int
     user_hash: str
+
+
+class History(BaseModel):
+    history: list[Order]

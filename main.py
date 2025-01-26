@@ -4,7 +4,7 @@ import os
 import flet as ft
 import requests
 
-from models import Products, Product
+from models import Products, Product, History
 
 api_address = 'http://localhost:12345'
 
@@ -196,7 +196,8 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
     )
 
     account_icon = ft.Container(
-        content=ft.Image(src="img/account_icon.svg", width=50)
+        content=ft.Image(src="img/account_icon.svg", width=50),
+        on_click=lambda e: page.go("/history")
     )
 
     buttons = ft.Row(
@@ -287,9 +288,56 @@ def build_basket(page: ft.Page):
     return frame
 
 
+def build_profile(page: ft.Page):
+    page.bgcolor = '#000000'
+    btn_back = ft.Container(ft.Image(src="img/arrow.svg", width=50), on_click=lambda e: page.go(
+        f"/login/{page.session.get('user_id')}/{page.session.get('user_hash')}"))
+    history_text = ft.Container(ft.Image(src="img/order_history.svg", width=page.width * 0.5))
+    dat = {
+        "user_id": page.session.get('user_id') or 1606058166,
+        "user_hash": page.session.get('user_hash') or 'c49ba79581e1384bb09121c304a0549d0c284d49af809947937c57e343396aa0'
+    }
+    response = requests.get(f'{api_address}/history', data=json.dumps(dat))
+    data = response.text
+    print(data)
+    data = json.loads(data)
+    print(data.get("history"), dat)
+
+    history = History.model_validate(data)
+    rows = []
+    for index, item in enumerate(history.history):
+        # print(f'Заказ №{index + 1}')
+        rows_2 = []
+        for i in item.data.keys():
+            response = requests.get(f'{api_address}/products/get', data=json.dumps({"product_id": int(i)}))
+            data = response.json()
+            answer = Product.model_validate(data)
+            # print(answer.name, item.data[i], answer.price * item.data[i])
+            rows_2.append(ft.Row([
+                ft.Text(f'  {answer.name}', color='#FFFFFF', width=page.width * 0.5),
+                ft.Text(f'  {item.data[i]} шт.', color='#FFFFFF', width=page.width * 0.25),
+                ft.Text(f'  {answer.price * item.data[i]}', color='#FFFFFF', width=page.width * 0.25)
+            ], alignment=ft.MainAxisAlignment.SPACE_EVENLY))
+        rows.append(ft.Container(content=ft.Column([ft.Text(value=f'  Заказ №{index + 1}', color='#FFFFFF',
+                                       size=24)] + rows_2), border_radius=20,
+        border=ft.border.all(3, '#FFFFFF')))
+
+    header = ft.Row([btn_back, history_text], spacing=page.width * 0.02)
+    body = ft.Column(controls=rows, scroll="always", expand=True, spacing=page.height * 0.06)
+
+    frame = ft.Column([
+        header,
+        body
+    ],
+        expand=True)
+    return frame
+
+
 def start(page: ft.Page):
     if page.route == "/basket":
         return build_basket(page)
+    elif page.route == "/history":
+        return build_profile(page)
     elif page.route.find("/login/") != -1:
         ip, data = page.route.split("/login/")
         user_id, user_hash = data.split("/")
