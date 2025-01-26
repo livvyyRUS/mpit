@@ -133,7 +133,8 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
     page.session.set("user_id", user_id)
     page.session.set("user_hash", user_hash)
     page.bgcolor = '#000000'
-    logo_image = ft.Container(ft.Image(src="img/logo.svg", width=page.width * 0.3), on_click=lambda e: page.launch_url("https://neimark-it.ru"))
+    logo_image = ft.Container(ft.Image(src="img/logo.svg", width=page.width * 0.3),
+                              on_click=lambda e: page.launch_url("https://neimark-it.ru"))
     free_container = ft.Container(expand=True)
 
     basket = ft.Container(
@@ -169,7 +170,8 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
 
 def build_basket(page: ft.Page):
     page.bgcolor = '#000000'
-    btn_back = ft.Container(ft.Image(src="img/arrow.svg", width=50), on_click=lambda e: page.go(f"/login/{page.session.get('user_id')}/{page.session.get('user_hash')}"))
+    btn_back = ft.Container(ft.Image(src="img/arrow.svg", width=50), on_click=lambda e: page.go(
+        f"/login/{page.session.get('user_id')}/{page.session.get('user_hash')}"))
     basket_text = ft.Container(ft.Image(src="img/basket_text.svg", width=page.width * 0.2))
 
     data_basket = page.session.get('basket')
@@ -207,17 +209,27 @@ def build_basket(page: ft.Page):
         ft.Text(f'ИТОГОВАЯ ЦЕНА: {final_price}', color='#FFFFFF')
     ], alignment=ft.MainAxisAlignment.CENTER)
 
-    header = ft.Row([btn_back, basket_text], spacing=page.width * 0.02)
-    body = ft.Column(controls=rows, scroll="always", expand=True, spacing=page.height * 0.02)
+    comment = ft.Row([ft.TextField(multiline=True,
+                                   width=page.width * 0.8,
+                                   hint_text='Комментарий к заказу',
+                                   hint_style=ft.TextStyle(color='#A0A0A0'),
+                                   min_lines=3,
+                                   color='#FFFFFF',
+                                   border_color='#FFFFFF',
+                                   border_radius=20,
+                                   text_align=ft.TextAlign.CENTER)],
+                     alignment=ft.MainAxisAlignment.CENTER)
 
     order = ft.Container(ft.Image(src="img/btn_order.svg", width=page.width * 0.8),
                          alignment=ft.alignment.center)
 
+    header = ft.Row([btn_back, basket_text], spacing=page.width * 0.02)
+    body = ft.Column(controls=rows + [comment, final_price_row, order],
+                     scroll="always", expand=True, spacing=page.height * 0.02)
+
     frame = ft.Column([
         header,
-        body,
-        final_price_row,
-        order
+        body
     ],
         expand=True)
     return frame
