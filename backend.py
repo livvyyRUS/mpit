@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from pygments.lexers import data
 
 from database import Database
 from models import Register, AddProducts, DeleteProduct
