@@ -97,11 +97,16 @@ async def cmd_change_points(message: types.Message):
 
 @dp.message(Command("add_product"))
 async def add_product(message: types.Message):
+    response = requests.get(f"{api_url}/admins")
+    if message.from_user.id not in response.json().get("data"):
+        return
     try:
-        text = message.caption.split(' ', 2)
-        print(message.text)
-        name = text[1]
-        price = int(text[2])
+        # text = message.caption.split(' ', 1)[1].split('|', 1)
+        ans = message.caption.split(' ', 1)[1]
+        text = ans.split("|")
+        print(text, ans, message.caption)
+        name = text[0]
+        price = int(text[1])
         numb = len(os.listdir('src/products'))
         file_name = f'src/products/{numb}.jpg'
         await bot.download(message.photo[-1], destination=file_name)
@@ -125,7 +130,6 @@ async def add_product(message: types.Message):
         await message.answer("Успешно")
         return
     await message.answer("Что-то пошло не так")
-
 
 
 async def main():
