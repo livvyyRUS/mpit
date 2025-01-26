@@ -2,6 +2,7 @@ import sqlite3
 from typing import Any
 
 from models import Product
+import secrets
 
 
 class Database:
@@ -13,14 +14,14 @@ class Database:
     def user_create(
             self,
             user_id: int,
-            username: str,
             balance: int = 0,
             role: str = "user",
             activated: int = 0,
-            history: str = "{}"
+            history: str = "{}",
+            token: str = secrets.token_hex(32)
     ):
         self.cursor.execute(
-            f'INSERT INTO users (user_id, username, balance, role, activated, history) VALUES ({user_id}, "{username}", {balance}, "{role}", {activated}, "{history}")'
+            f'INSERT INTO users (user_id, balance, role, activated, history, token) VALUES ({user_id}, {balance}, "{role}", {activated}, "{history}", "{token}")'
         )
         self.db.commit()
 
@@ -30,6 +31,11 @@ class Database:
         data = f'"{data}"' if type(data) == str else data
         self.cursor.execute(f'UPDATE users SET {item} = {data} WHERE user_id = {user_id}')
         self.db.commit()
+
+    def user_get(self, user_id: int, item: str) -> Any:
+        self.cursor.execute(f'SELECT {item} FROM users WHERE user_id = {user_id}')
+        data = self.cursor.fetchone()
+        return data[0]
 
     def product_create(
             self,
@@ -61,3 +67,12 @@ class Database:
     def product_delete(self, product_id: int):
         self.cursor.execute(f'DELETE FROM products WHERE product_id = {product_id}')
         self.db.commit()
+
+    def check_user(self, _user_id: int):
+        self.cursor.execute('SELECT * FROM users')
+        data = self.cursor.fetchall()
+        for user in data:
+            user_id, balance, role, activated, history, token = user
+            if _user_id == user_id:
+                return True
+        return False

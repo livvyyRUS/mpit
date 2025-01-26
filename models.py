@@ -23,6 +23,10 @@ class DeleteProduct(BaseModel):
     token: str
     product_id: int
 
+
 class Products(BaseModel):
     data: list[Product]
 
+
+class GetUser(BaseModel):
+    user_id: int
