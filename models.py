@@ -16,7 +16,6 @@ class AddProducts(BaseModel):
 class Register(BaseModel):
     token: str
     user_id: int
-    username: str
 
 
 class DeleteProduct(BaseModel):

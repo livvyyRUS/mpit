@@ -15,6 +15,10 @@ async def root():
     return {"Hello": "World"}
 
 
+@app.get("/check_activation")
+async def check_activation(data: GetUser):
+    return db.user_get(data.user_id, "activated")
+
 @app.get("/get_balance")
 async def get_balance(data: GetUser):
     return db.user_get(data.user_id, "balance")
@@ -52,10 +56,9 @@ async def get_all_products():
 async def register(data: Register):
     if data.token != TOKEN:
         return {"status": "BAD", "error": "Wrong Token"}
-    db.user_create(
-        user_id=data.user_id,
-        username=data.username,
-    )
+    if not db.check_user(data.user_id):
+        return {"status": "BAD", "error": "user not exists"}
+    db.user_set(data.user_id, "activated", 1)
 
     return {"status": "OK"}
 

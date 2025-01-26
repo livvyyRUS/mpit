@@ -1,8 +1,25 @@
+import json
+
 import flet as ft
 import requests
+
 from models import Products
 
 api_address = 'http://localhost:12345'
+
+
+def get_token(user_id: int):
+    response = requests.get(f"{api_address}/get_token", data=json.dumps({"user_id": user_id}))
+    return response.text.strip('"')
+
+
+def check_activation(user_id: int):
+    response = requests.get(f"{api_address}/check_activation", data=json.dumps({"user_id": user_id}))
+    return int(response.text.strip('"'))
+
+
+def add_to_basket():
+    ...
 
 
 def create_card(page: ft.Page, image, name, price):
@@ -101,9 +118,14 @@ def start(page: ft.Page):
     elif page.route.find("/login/") != -1:
         ip, data = page.route.split("/login/")
         user_id, user_hash = data.split("/")
+        print(check_activation(user_id))
+        if user_hash != get_token(user_id):
+            return ft.Text("Вы зашли не со своего аккаунта")
+        elif bool(check_activation(user_id)) is False:
+            return ft.Text("Ваша учетная запись не активирована")
         return build_main(page, user_id, user_hash)
     else:
-        return build_main(page, 0, "2")
+        return ft.Text("Вы зашли не с телеграмма")
 
 
 def card_generator(name: str, price: int, img: str) -> ft.Container:
