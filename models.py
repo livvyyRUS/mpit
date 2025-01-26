@@ -22,3 +22,7 @@ class Register(BaseModel):
 class DeleteProduct(BaseModel):
     token: str
     product_id: int
+
+class Products(BaseModel):
+    data: list[Product]
+
