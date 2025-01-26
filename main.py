@@ -190,7 +190,7 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
     free_container = ft.Container(expand=True)
 
     basket = ft.Container(
-        content=ft.Image(src="img/basket.svg", width=50),
+        content=ft.Image(src="img/basket_2.svg", width=50),
         border_radius=1000,
         on_click=lambda e: page.go("/basket")
     )
