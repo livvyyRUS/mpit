@@ -1,9 +1,11 @@
 import json
 
 from fastapi import FastAPI
-
+import requests
 from database import Database
-from models import Register, AddProducts, DeleteProduct, GetUser, GetProduct, Order, HistoryGet
+from models import Register, AddProducts, DeleteProduct, GetUser, GetProduct, Order, HistoryGet, ChangePoints
+
+from config import token as __TOKEN__
 
 db = Database("database.db")
 
@@ -68,7 +70,6 @@ async def register(data: Register):
 
 @app.post("/products/delete")
 async def delete_products(data: DeleteProduct):
-    print(data)
     if data.token != TOKEN:
         return {"status": "BAD", "error": "Wrong Token"}
     db.product_delete(data.product_id)
@@ -95,6 +96,43 @@ async def cmd_order(data: Order):
     history_.append(data.model_dump())
     history["history"] = history_
     db.user_set(data.user_id, "history", json.dumps(history))
+
+    URL = f"https://api.telegram.org/bot{__TOKEN__}/getChat"
+
+    # Параметры запроса
+    params = {
+        "chat_id": data.user_id
+    }
+
+    # Отправка запроса
+    response = requests.get(URL, params=params)
+    username = None
+    # Обработка результата
+    if response.status_code == 200:
+        _data = response.json()
+        if _data.get("ok"):
+            chat_info = _data.get("result", {})
+            username = chat_info.get("username")
+    print(db.get_all_admins())
+    for us_id in db.get_all_admins():
+        URL = f"https://api.telegram.org/bot{__TOKEN__}/sendMessage"
+        text = f"Заказ от пользователя @{username}\n==========\n"
+        for i in data.data.keys():
+            product_id, name, image, price = db.product_get_all(int(i))
+            numb = data.data[i]
+            price *= numb
+            text += f"{name} - {numb} шт. - {price}\n"
+        text += f"==========\nКомментарий:\n{data.comment}"
+
+        # Параметры запроса
+        params = {
+            "chat_id": us_id,
+            "text": text
+        }
+
+        # Отправка запроса
+        response = requests.post(URL, params=params)
+        print(response.text, response.url)
     return True
 
 
@@ -103,3 +141,17 @@ async def cmd_history(data: HistoryGet):
     if db.user_get(data.user_id, "token") != data.user_hash:
         return None
     return json.loads(db.user_get(data.user_id, "history"))
+
+
+@app.get("/admins")
+async def get_admins():
+    return {"data": db.get_all_admins()}
+
+
+@app.post("/change_points")
+async def change_points(data: ChangePoints):
+    balance = db.user_get(data.user_id, "balance")
+    balance += data.points
+    db.user_set(data.user_id, "balance", balance)
+    return True
+

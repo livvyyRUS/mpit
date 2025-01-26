@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 
 import requests
 from aiogram import Bot, Dispatcher, types
@@ -12,6 +13,8 @@ from config import token
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=token)
 dp = Dispatcher()
+
+TOKEN = "0F8ofm1AYuuCiIU9uimnq4fnqsm7905zacLkeEmC2rDLgAYVYwsIE9fgAUPNaagQ"
 
 url = f"https://fe43-178-208-80-247.ngrok-free.app"
 api_url = 'http://localhost:12345'
@@ -46,6 +49,83 @@ async def cmd_start(message: types.Message):
     await message.answer(
         "Привет! 🧑‍💻\nЯ – телеграмм-бот мерч-маркета ИТ-кампуса НЕЙМАРК.\nНажми на кнопку чтобы получить крутой мерч 👇",
         reply_markup=keyboard)
+
+
+@dp.message(Command("activate"))
+async def cmd_activate(message: types.Message):
+    response = requests.get(f"{api_url}/admins")
+    if message.from_user.id not in response.json().get("data"):
+        return
+    try:
+        data = int(message.text.split(" ", maxsplit=1)[1].strip())
+    except:
+        await message.answer("Что-то пошло не так")
+        return
+    response = requests.post(f"{api_url}/register", data=json.dumps({
+        "token": TOKEN,
+        "user_id": data
+    }))
+    if response.status_code == 200:
+        await message.answer("Успешно")
+        return
+    await message.answer("Что-то пошло не так")
+
+
+@dp.message(Command("change_points"))
+async def cmd_change_points(message: types.Message):
+    response = requests.get(f"{api_url}/admins")
+    if message.from_user.id not in response.json().get("data"):
+        return
+    try:
+        _, data, pts = message.text.split(" ", maxsplit=2)
+        data = int(data.strip())
+        pts = int(pts.strip())
+    except:
+        await message.answer("Что-то пошло не так")
+        return
+
+    response = requests.post(f"{api_url}/change_points", data=json.dumps({
+        "user_id": data,
+        "points": pts
+    }))
+    print(response.text)
+    if response.status_code == 200:
+        await message.answer("Успешно")
+        return
+    await message.answer("Что-то пошло не так")
+
+
+@dp.message(Command("add_product"))
+async def add_product(message: types.Message):
+    try:
+        text = message.caption.split(' ', 2)
+        print(message.text)
+        name = text[1]
+        price = int(text[2])
+        numb = len(os.listdir('src/products'))
+        file_name = f'src/products/{numb}.jpg'
+        await bot.download(message.photo[-1], destination=file_name)
+    except Exception as e:
+        print(e)
+        await message.answer('Что-то пошло не так')
+        return
+
+    response = requests.post(f"{api_url}/products/add", data=json.dumps({
+        "token": TOKEN,
+        "data": [
+            {
+                "product_id": numb,
+                "name": name,
+                "image": f"{numb}.jpg",
+                "price": price
+            }
+        ]
+    }))
+    if response.status_code == 200:
+        await message.answer("Успешно")
+        return
+    await message.answer("Что-то пошло не так")
+
 
 
 async def main():

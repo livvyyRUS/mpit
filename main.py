@@ -8,6 +8,8 @@ from models import Products, Product, History
 
 api_address = 'http://localhost:12345'
 
+global_font = 'fonts/gramatika_regular.ttf'
+
 
 def load_banner(page: ft.Page, text: str, color: str):
     banner = ft.Banner(
@@ -327,6 +329,7 @@ def build_profile(page: ft.Page):
 
     frame = ft.Column([
         header,
+        ft.Text(f'user_id: {page.session.get("user_id")}', color='#FFFFFF'),
         body
     ],
         expand=True)
@@ -365,6 +368,12 @@ def on_route_change(e: ft.RouteChangeEvent):
 
 
 def main(page: ft.Page):
+    page.fonts = {
+        "MyCustomFont": "/fonts/gramatika_regular.ttf"
+    }
+    page.theme = ft.Theme(
+        font_family="MyCustomFont"
+    )
     data = start(page)
     page.add(data)
 

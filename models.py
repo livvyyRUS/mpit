@@ -54,3 +54,8 @@ class HistoryGet(BaseModel):
 
 class History(BaseModel):
     history: list[Order]
+
+
+class ChangePoints(BaseModel):
+    user_id: int
+    points: int

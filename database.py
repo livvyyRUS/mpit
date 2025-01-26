@@ -84,3 +84,6 @@ class Database:
         product_id, name, image, price = self.cursor.fetchone()
         return product_id, name, image, price
 
+    def get_all_admins(self):
+        self.cursor.execute(f"SELECT user_id FROM users WHERE role = 'admin'")
+        return [x[0] for x in self.cursor.fetchall()]
