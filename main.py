@@ -24,9 +24,15 @@ def create_card(page: ft.Page, image, name, price):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Выравнивание по горизонтали
     )
 
+    btn_add = ft.IconButton(icon=ft.icons.ADD, icon_color='black')
+    btn_remove = ft.IconButton(icon=ft.icons.REMOVE, icon_color='black')
+    product_counter = ft.Text('0', color='black')
+    btn_container = ft.Container(content=ft.Row([btn_remove, product_counter, btn_add],
+                                                alignment=ft.MainAxisAlignment.CENTER))
+
     # Главный контейнер (карточка)
     card_container = ft.Container(
-        content=ft.Column([image_container, text_container], alignment=ft.MainAxisAlignment.CENTER),
+        content=ft.Column([image_container, text_container, btn_container], alignment=ft.MainAxisAlignment.CENTER),
         bgcolor='#FFFFFF',
         border_radius=20,
         width=page.width * 0.4
@@ -109,7 +115,6 @@ def on_resize(e: ft.ControlEvent):
     e.page.clean()
     data = start(e.page)
     e.page.add(data)
-    e.page.update()
 
 
 def on_route_change(e: ft.RouteChangeEvent):
