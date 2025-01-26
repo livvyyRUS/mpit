@@ -4,7 +4,7 @@ import os
 import flet as ft
 import requests
 
-from models import Products
+from models import Products, Product
 
 api_address = 'http://localhost:12345'
 
@@ -90,8 +90,7 @@ def create_card(page: ft.Page, image, name, price):
     btn_add = ft.IconButton(icon=ft.Icons.ADD, icon_color='black',
                             on_click=lambda e: add_btn_on_click(e, product_counter, btn_remove, image))
     btn_remove = ft.IconButton(icon=ft.Icons.REMOVE, icon_color='black',
-                               on_click=lambda e: remove_btn_on_click(e, product_counter, btn_remove, image),
-                               disabled=True)
+                               on_click=lambda e: remove_btn_on_click(e, product_counter, btn_remove, image))
     btn_container = ft.Container(content=ft.Row([btn_remove, product_counter, btn_add],
                                                 alignment=ft.MainAxisAlignment.CENTER))
 
@@ -151,8 +150,14 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
         [basket, account_icon], spacing=page.width * 0.01
     )
 
+    response = requests.get(f'{api_address}/get_balance', data=json.dumps({'user_id': page.session.get('user_id')}))
+    data = int(response.text.strip('"'))
+
+    balance = ft.Row([ft.Text(f'ВАШ БАЛАНС: {data}', color='#FFFFFF')],
+                     alignment=ft.MainAxisAlignment.CENTER)
+
     header = ft.Row([logo_image, free_container, buttons])
-    body = ft.Column(gen_cards(page), scroll="always", expand=True, spacing=page.height * 0.02)
+    body = ft.Column([balance, *gen_cards(page)], scroll="always", expand=True, spacing=page.height * 0.02)
 
     frame = ft.Column([
         header,
@@ -167,12 +172,52 @@ def build_basket(page: ft.Page):
     btn_back = ft.Container(ft.Image(src="img/arrow.svg", width=50), on_click=lambda e: page.go(f"/login/{page.session.get('user_id')}/{page.session.get('user_hash')}"))
     basket_text = ft.Container(ft.Image(src="img/basket_text.svg", width=page.width * 0.2))
 
+    data_basket = page.session.get('basket')
+    rows = []
+    final_price = 0
+    rows.append(ft.Row([
+        ft.Text(f'ТОВАР', color='#FFFFFF', width=page.width * 0.5,
+                text_align=ft.TextAlign.CENTER),
+        ft.Text(f'КОЛ-ВО', color='#FFFFFF', width=page.width * 0.25,
+                text_align=ft.TextAlign.CENTER),
+        ft.Text(f'ЦЕНА', color='#FFFFFF', width=page.width * 0.25,
+                text_align=ft.TextAlign.CENTER)
+    ], alignment=ft.MainAxisAlignment.SPACE_EVENLY))
+    if data_basket is None:
+        data_basket = {}
+    else:
+        print(data_basket)
+        for i in data_basket.keys():
+            if data_basket[i] != 0:
+                response = requests.get(f'{api_address}/products/get', data=json.dumps({"product_id": int(i)}))
+                data = response.json()
+                print(data)
+                answer = Product.model_validate(data)
+
+                rows.append(ft.Row([
+                    ft.Text(f'{answer.name}', color='#FFFFFF', width=page.width * 0.5),
+                    ft.Text(f'{data_basket[i]} шт.', color='#FFFFFF', width=page.width * 0.25,
+                            text_align=ft.TextAlign.CENTER),
+                    ft.Text(f'{answer.price * data_basket[i]}', color='#FFFFFF', width=page.width * 0.25,
+                            text_align=ft.TextAlign.CENTER)
+                ], alignment=ft.MainAxisAlignment.SPACE_EVENLY))
+                final_price += answer.price * data_basket[i]
+
+    final_price_row = ft.Row([
+        ft.Text(f'ИТОГОВАЯ ЦЕНА: {final_price}', color='#FFFFFF')
+    ], alignment=ft.MainAxisAlignment.CENTER)
+
     header = ft.Row([btn_back, basket_text], spacing=page.width * 0.02)
-    body = ft.Column([], scroll="always", expand=True, spacing=page.height * 0.02)
+    body = ft.Column(controls=rows, scroll="always", expand=True, spacing=page.height * 0.02)
+
+    order = ft.Container(ft.Image(src="img/btn_order.svg", width=page.width * 0.8),
+                         alignment=ft.alignment.center)
 
     frame = ft.Column([
         header,
-        body
+        body,
+        final_price_row,
+        order
     ],
         expand=True)
     return frame
@@ -191,10 +236,6 @@ def start(page: ft.Page):
         return build_main(page, user_id, user_hash)
     else:
         return ft.Text("Вы зашли не с телеграмма")
-
-
-def card_generator(name: str, price: int, img: str) -> ft.Container:
-    pass
 
 
 def on_resize(e: ft.ControlEvent):

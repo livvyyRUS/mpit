@@ -27,5 +27,13 @@ class Products(BaseModel):
     data: list[Product]
 
 
+class GetProduct(BaseModel):
+    product_id: int
+
+
 class GetUser(BaseModel):
     user_id: int
+
+
+class GetProduct(BaseModel):
+    product_id: int

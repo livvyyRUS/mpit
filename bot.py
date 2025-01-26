@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=token)
 dp = Dispatcher()
 
-url = f"https://58f4-178-208-80-247.ngrok-free.app"
+url = f"https://fe43-178-208-80-247.ngrok-free.app"
 api_url = 'http://localhost:12345'
 
 

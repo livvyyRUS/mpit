@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from database import Database
-from models import Register, AddProducts, DeleteProduct, GetUser
+from models import Register, AddProducts, DeleteProduct, GetUser, GetProduct
 
 db = Database("database.db")
 
@@ -70,3 +70,10 @@ async def delete_products(data: DeleteProduct):
         return {"status": "BAD", "error": "Wrong Token"}
     db.product_delete(data.product_id)
     return {"status": "OK"}
+
+
+
+@app.get("/products/get")
+async def get_product(product: GetProduct):
+    product_id, name, image, price = db.product_get_all(product.product_id)
+    return {"product_id": product_id, "name": name, "image": image, "price": price}

@@ -76,3 +76,9 @@ class Database:
             if _user_id == user_id:
                 return True
         return False
+
+    def product_get_all(self, product_id: int):
+        self.cursor.execute(f'SELECT * FROM products WHERE product_id = {product_id}')
+        product_id, name, image, price = self.cursor.fetchone()
+        return product_id, name, image, price
+
