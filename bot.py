@@ -11,16 +11,22 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=token)
 dp = Dispatcher()
 
-url = f"https://192.168.52.16:2222"
+url = f"https://42f5-178-208-80-247.ngrok-free.app"
+
+
+@dp.message(Command("support"))
+async def cmd_support(message: types.Message):
+    await message.answer("Нужна помощь? Вот наши контакты:\nneimark-it.ru")
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    btn = InlineKeyboardButton(text="Открыть мини-приложение",
-                               web_app=WebAppInfo(url=f"{url}/login/{message.from_user.id}/euaugfg87aegf")
-                               )
+    btn = InlineKeyboardButton(
+        text="НЕЙМАРК.Маркет",
+        web_app=WebAppInfo(url=f"{url}/login/{message.from_user.id}/euaugfg87aegf")
+        )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[btn]])
-    await message.answer("Hello!1", reply_markup=keyboard)
+    await message.answer("Привет! 🧑‍💻\nЯ – телеграмм-бот мерч-маркета ИТ-кампуса НЕЙМАРК.\nНажми на кнопку чтобы получить крутой мерч 👇", reply_markup=keyboard)
 
 
 async def main():

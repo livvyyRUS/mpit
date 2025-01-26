@@ -2,7 +2,7 @@ import flet as ft
 import requests
 from models import Products
 
-api_address = 'http://192.168.52.80:12345'
+api_address = 'http://localhost:12345'
 
 
 def create_card(page: ft.Page, image, name, price):
