@@ -1,0 +1,30 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_7_2)">
+<rect width="1000" height="1000" rx="500" fill="url(#paint0_linear_7_2)"/>
+<g filter="url(#filter0_f_7_2)">
+<ellipse cx="500" cy="1174" rx="834" ry="435" fill="#004DA8"/>
+</g>
+<mask id="mask0_7_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="96" y="166" width="466" height="667">
+<path d="M96 499.642L561.559 166.532L561.559 832.752L96 499.642Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_7_2)">
+<rect width="712.271" height="789.51" transform="matrix(0.825732 0.564063 -0.399507 0.91673 133.682 396.76)" fill="white"/>
+<rect width="715.045" height="787.083" transform="matrix(-0.814188 0.580602 -0.414095 -0.910234 678.274 223.458)" fill="white"/>
+</g>
+<rect x="287" y="429.285" width="617" height="139" fill="white"/>
+</g>
+<defs>
+<filter id="filter0_f_7_2" x="-634" y="439" width="2268" height="1470" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur_7_2"/>
+</filter>
+<linearGradient id="paint0_linear_7_2" x1="500" y1="0" x2="500" y2="1000" gradientUnits="userSpaceOnUse">
+<stop offset="0.206667" stop-color="#A31A2E"/>
+<stop offset="0.836667" stop-color="#004DA8"/>
+</linearGradient>
+<clipPath id="clip0_7_2">
+<rect width="1000" height="1000" rx="500" fill="white"/>
+</clipPath>
+</defs>
+</svg>

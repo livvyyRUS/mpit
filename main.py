@@ -1,4 +1,5 @@
 import json
+import os
 
 import flet as ft
 import requests
@@ -18,8 +19,46 @@ def check_activation(user_id: int):
     return int(response.text.strip('"'))
 
 
-def add_to_basket():
-    ...
+def add_btn_on_click(e, counter, btn, image):
+    e.page: ft.Page
+    btn.disabled = False
+    basket = e.page.session.get('basket')
+    file_name_without_extension = os.path.splitext(os.path.basename(image))[0]
+    if basket is None:
+        basket = {}
+        dat = int(counter.value)
+    else:
+        dat = basket.get(file_name_without_extension)
+        if dat is None:
+            dat = 0
+    dat += 1
+    counter.value = dat
+    basket[file_name_without_extension] = dat
+    e.page.session.set("basket", basket)
+    e.page.update()
+    print(e.page.session.get("user_id"), e.page.session.get('basket'))
+
+
+def remove_btn_on_click(e, counter, btn, image):
+    e.page: ft.Page
+    basket = e.page.session.get('basket')
+    file_name_without_extension = os.path.splitext(os.path.basename(image))[0]
+    if basket is None:
+        basket = {}
+        dat = int(counter.value)
+    else:
+        dat = basket.get(file_name_without_extension)
+        if dat is None:
+            dat = 0
+    dat -= 1
+    if dat <= 0:
+        dat = 0
+        btn.disabled = True
+    counter.value = dat
+    basket[file_name_without_extension] = dat
+    e.page.session.set("basket", basket)
+    e.page.update()
+    print(e.page.session.get("user_id"), e.page.session.get('basket'))
 
 
 def create_card(page: ft.Page, image, name, price):
@@ -41,9 +80,18 @@ def create_card(page: ft.Page, image, name, price):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Выравнивание по горизонтали
     )
 
-    btn_add = ft.IconButton(icon=ft.icons.ADD, icon_color='black')
-    btn_remove = ft.IconButton(icon=ft.icons.REMOVE, icon_color='black')
-    product_counter = ft.Text('0', color='black')
+    file_name_without_extension = os.path.splitext(os.path.basename(image))[0]
+
+    value = "0"
+    if page.session.get("basket"):
+        value = str(page.session.get("basket").get(file_name_without_extension) or 0)
+
+    product_counter = ft.Text(value, color='black')
+    btn_add = ft.IconButton(icon=ft.Icons.ADD, icon_color='black',
+                            on_click=lambda e: add_btn_on_click(e, product_counter, btn_remove, image))
+    btn_remove = ft.IconButton(icon=ft.Icons.REMOVE, icon_color='black',
+                               on_click=lambda e: remove_btn_on_click(e, product_counter, btn_remove, image),
+                               disabled=True)
     btn_container = ft.Container(content=ft.Row([btn_remove, product_counter, btn_add],
                                                 alignment=ft.MainAxisAlignment.CENTER))
 
@@ -63,6 +111,7 @@ def gen_cards(page: ft.Page):
     answer = Products.model_validate(data)
 
     i, counter = 0, len(answer.data)
+
     products_rows = []
     while counter != 0:
         if counter - 2 >= 0:
@@ -82,14 +131,16 @@ def gen_cards(page: ft.Page):
 
 
 def build_main(page: ft.Page, user_id: int, user_hash: str):
-    print(user_id, user_hash)
+    page.session.set("user_id", user_id)
+    page.session.set("user_hash", user_hash)
     page.bgcolor = '#000000'
-    logo_image = ft.Container(ft.Image(src="img/logo.svg", width=page.width * 0.3))
+    logo_image = ft.Container(ft.Image(src="img/logo.svg", width=page.width * 0.3), on_click=lambda e: page.launch_url("https://neimark-it.ru"))
     free_container = ft.Container(expand=True)
 
     basket = ft.Container(
         content=ft.Image(src="img/basket.svg", width=50),
         border_radius=1000,
+        on_click=lambda e: page.go("/basket")
     )
 
     account_icon = ft.Container(
@@ -111,14 +162,28 @@ def build_main(page: ft.Page, user_id: int, user_hash: str):
     return frame
 
 
+def build_basket(page: ft.Page):
+    page.bgcolor = '#000000'
+    btn_back = ft.Container(ft.Image(src="img/arrow.svg", width=50), on_click=lambda e: page.go(f"/login/{page.session.get('user_id')}/{page.session.get('user_hash')}"))
+    basket_text = ft.Container(ft.Image(src="img/basket_text.svg", width=page.width * 0.2))
+
+    header = ft.Row([btn_back, basket_text], spacing=page.width * 0.02)
+    body = ft.Column([], scroll="always", expand=True, spacing=page.height * 0.02)
+
+    frame = ft.Column([
+        header,
+        body
+    ],
+        expand=True)
+    return frame
+
+
 def start(page: ft.Page):
-    print(page.route)
     if page.route == "/basket":
-        return ft.Text("basket")
+        return build_basket(page)
     elif page.route.find("/login/") != -1:
         ip, data = page.route.split("/login/")
         user_id, user_hash = data.split("/")
-        print(check_activation(user_id))
         if user_hash != get_token(user_id):
             return ft.Text("Вы зашли не со своего аккаунта")
         elif bool(check_activation(user_id)) is False:
