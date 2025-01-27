@@ -16,7 +16,7 @@ dp = Dispatcher()
 
 TOKEN = "0F8ofm1AYuuCiIU9uimnq4fnqsm7905zacLkeEmC2rDLgAYVYwsIE9fgAUPNaagQ"
 
-url = f"https://fe43-178-208-80-247.ngrok-free.app"
+url = f"https://e220-178-208-80-247.ngrok-free.app"
 api_url = 'http://localhost:12345'
 
 
