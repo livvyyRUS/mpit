@@ -18,8 +18,10 @@ class Database:
             role: str = "user",
             activated: int = 0,
             history: str = '{"history": []}',
-            token: str = secrets.token_hex(32)
+            token: str = None
     ):
+        if token is None:
+            token = secrets.token_hex(32)
         self.cursor.execute(
             f'''INSERT INTO users (user_id, balance, role, activated, history, token) VALUES ({user_id}, {balance}, "{role}", {activated}, '{history}', "{token}")'''
         )

@@ -113,10 +113,14 @@ async def cmd_order(data: Order):
         if _data.get("ok"):
             chat_info = _data.get("result", {})
             username = chat_info.get("username")
+            if username is None:
+                username = data.user_id
+            else:
+                username = "@" + username
     print(db.get_all_admins())
     for us_id in db.get_all_admins():
         URL = f"https://api.telegram.org/bot{__TOKEN__}/sendMessage"
-        text = f"Заказ от пользователя @{username}\n==========\n"
+        text = f"Заказ от пользователя {username}\n==========\n"
         for i in data.data.keys():
             product_id, name, image, price = db.product_get_all(int(i))
             numb = data.data[i]
